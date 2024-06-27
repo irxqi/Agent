@@ -19,6 +19,8 @@ import { main } from './ai.js';
 import fs from 'fs/promises'; // Using fs/promises for async file operations
 import dotenv from 'dotenv';
 import { format } from 'date-fns';
+import startServer from './keep_alive.js';
+
 
 function getCurrentFormattedTime() {
   const now = new Date();
@@ -218,5 +220,5 @@ client.on('messageCreate', async (message) => {
 });
 
 
-
+startServer();
 client.login(token);
