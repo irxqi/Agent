@@ -1,0 +1,8 @@
+{
+  "import": true,
+  "responses": {
+    "get https://www.tiktok.com/@irxqi__/video/7371524183525723399": "https://discord.com/channels/1233467417183780864/1241995847365820477/1241996702823481395",
+    "help": "# Commands:\n## -help : shows this message\n## -get : get useful links by giving the link of the video",
+    "weather": "Currently sunny and 25°C."
+  }
+}
