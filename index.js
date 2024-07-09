@@ -91,57 +91,70 @@ client.on('ready', () => {
   console.log(`Logged in as ${client.user.username}`);
 });
 
-client.on('messageCreate', async (message) => {
-  if (message.author.bot || message.channel.id !== '1251837704916832266') return;
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isCommand()) return;
 
-  const userInput = message.content.trim().toLowerCase();
+  const { commandName } = interaction;
 
-  if (userInput.startsWith(prefix)) {
-    const args = userInput.slice(prefix.length).trim().split(' ');
-    const command = args.shift();
+  if (!client.commands.has(commandName)) return;
 
-    switch (command) {
-      case 'add':
-        await handleAddCommand(message, args);
-        break;
-      case 'list':
-        await handleListCommand(message);
-        break;
-      case 'edit':
-        await handleEditCommand(message, args);
-        break;
-      case 'remove':
-        await handleRemoveCommand(message, args);
-        break;
-      default:
-        message.reply('Invalid command. Use `-help` for a list of commands.');
-    }
+  try {
+    const command = client.commands.get(commandName);
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(error);
+    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
   }
 });
 
-async function handleAddCommand(message, args) {
-  const [input, output] = args.join(' ').split("' '").map(str => str.replace(/'/g, ''));
-  if (!input || !output) {
-    return message.reply("Invalid format. Use `-add 'input' 'output'`.");
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  // Check for messages in the '1251837704916832266' channel
+  if (message.channel.id === '1251837704916832266') {
+    const userInput = message.content.trim().toLowerCase();
+
+    if (userInput.startsWith(prefix)) {
+      const args = userInput.slice(prefix.length).trim().split(' ');
+      const command = args.shift();
+
+      switch (command) {
+        case 'add':
+          await handleAddCommand(message, args);
+          break;
+        case 'list':
+          await handleListCommand(message);
+          break;
+        case 'edit':
+          await handleEditCommand(message, args);
+          break;
+        case 'remove':
+          await handleRemoveCommand(message, args);
+          break;
+        default:
+          message.reply('Invalid command. Use `-help` for a list of commands.');
+      }
+    }
   }
 
-  config.responses[input] = output;
-  await saveConfig();
-  message.reply(`Added response: \`${input}\` -> \`${output}\``);
-}
+  // Check for messages in the '1251838469789974628' channel
+  if (message.channel.id === '1251838469789974628') {
+    const userInput = message.content.trim().toLowerCase();
+    let responseFound = false;
 
-async function handleListCommand(message) {
-  const responses = Object.keys(config.responses);
-  if (responses.length === 0) {
-    return message.reply('No responses found.');
+    for (const [input, response] of Object.entries(config.responses)) {
+      if (userInput.includes(input.toLowerCase())) {
+        await message.reply(response);
+        responseFound = true;
+        break;
+      }
+    }
+
+    if (!responseFound) {
+      await message.reply('No response found for the given input, use -help to get help');
+    }
   }
-
-  const list = responses.map((input, index) => {
-    const output = config.responses[input].replace(/\n/g, '\\n');
-    return `${index + 1}. ${input} -> ${output}`;
-  }).join('\n');
-  message.reply(`Responses:\n\`\`\`\n${list}\n\`\`\``);
-}
+});
 
 async function handleEditCommand(message, args) {
   const [index, newInput, newOutput] = args.join(' ').split("' '").map(str => str.replace(/'/g, ''));
