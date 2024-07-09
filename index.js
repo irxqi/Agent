@@ -156,6 +156,30 @@ client.on('messageCreate', async (message) => {
   }
 });
 
+async function handleAddCommand(message, args) {
+  const [input, output] = args.join(' ').split("' '").map(str => str.replace(/'/g, ''));
+  if (!input || !output) {
+    return message.reply("Invalid format. Use `-add 'input' 'output'`.");
+  }
+
+  config.responses[input] = output;
+  await saveConfig();
+  message.reply(`Added response: \`${input}\` -> \`${output}\``);
+}
+
+async function handleListCommand(message) {
+  const responses = Object.keys(config.responses);
+  if (responses.length === 0) {
+    return message.reply('No responses found.');
+  }
+
+  const list = responses.map((input, index) => {
+    const output = config.responses[input].replace(/\n/g, '\\n');
+    return `${index + 1}. ${input} -> ${output}`;
+  }).join('\n');
+  message.reply(`Responses:\n\`\`\`\n${list}\n\`\`\``);
+}
+
 async function handleEditCommand(message, args) {
   const [index, newInput, newOutput] = args.join(' ').split("' '").map(str => str.replace(/'/g, ''));
   const responses = Object.keys(config.responses);
